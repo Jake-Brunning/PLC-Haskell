@@ -628,8 +628,8 @@ alex_base = Data.Array.listArray (0 :: Int, 26)
   , 0
   , 0
   , 0
-  , 0
   , -26
+  , 0
   , -28
   , 0
   , 0
@@ -653,7 +653,7 @@ alex_table = Data.Array.listArray (0 :: Int, 1406)
   , 1
   , 1
   , 1
-  , 22
+  , 23
   , 15
   , 0
   , 0
@@ -671,7 +671,7 @@ alex_table = Data.Array.listArray (0 :: Int, 1406)
   , 16
   , 20
   , 19
-  , 23
+  , 22
   , 25
   , 0
   , 24
@@ -3542,8 +3542,8 @@ alex_action_4 = \p s -> TokenInt p (read s)
 alex_action_5 = \p s -> TokenEq p
 alex_action_6 = \p s -> TokenPlus p
 alex_action_7 = \p s -> TokenMinus p
-alex_action_8 = \p s -> TokenTimes p
-alex_action_9 = \p s -> TokenExp p
+alex_action_8 = \p s -> TokenExp p
+alex_action_9 = \p s -> TokenTimes p
 alex_action_10 = \p s -> TokenDiv p
 alex_action_11 = \p s -> TokenLParen p
 alex_action_12 = \p s -> TokenRParen p
@@ -3596,15 +3596,18 @@ data AlexAddr = AlexA# Addr#
 {-# INLINE alexIndexInt16OffAddr #-}
 alexIndexInt16OffAddr :: AlexAddr -> Int# -> Int#
 alexIndexInt16OffAddr (AlexA# arr) off =
+#ifdef WORDS_BIGENDIAN
+  narrow16Int# i
+  where
+        i    = word2Int# ((high `uncheckedShiftL#` 8#) `or#` low)
+        high = int2Word# (ord# (indexCharOffAddr# arr (off' +# 1#)))
+        low  = int2Word# (ord# (indexCharOffAddr# arr off'))
+        off' = off *# 2#
+#else
 #if __GLASGOW_HASKELL__ >= 901
-  GHC.Exts.int16ToInt# -- qualified import because it doesn't exist on older GHC's
+  GHC.Exts.int16ToInt#
 #endif
-#ifdef WORDS_BIGENDIAN
-  (GHC.Exts.word16ToInt16# (GHC.Exts.wordToWord16# (GHC.Exts.byteSwap16# (GHC.Exts.word16ToWord# (GHC.Exts.int16ToWord16#
-#endif
-  (indexInt16OffAddr# arr off)
-#ifdef WORDS_BIGENDIAN
-  )))))
+    (indexInt16OffAddr# arr off)
 #endif
 #else
 alexIndexInt16OffAddr = (Data.Array.!)
@@ -3614,15 +3617,22 @@ alexIndexInt16OffAddr = (Data.Array.!)
 {-# INLINE alexIndexInt32OffAddr #-}
 alexIndexInt32OffAddr :: AlexAddr -> Int# -> Int#
 alexIndexInt32OffAddr (AlexA# arr) off =
+#ifdef WORDS_BIGENDIAN
+  narrow32Int# i
+  where
+   i    = word2Int# ((b3 `uncheckedShiftL#` 24#) `or#`
+                     (b2 `uncheckedShiftL#` 16#) `or#`
+                     (b1 `uncheckedShiftL#` 8#) `or#` b0)
+   b3   = int2Word# (ord# (indexCharOffAddr# arr (off' +# 3#)))
+   b2   = int2Word# (ord# (indexCharOffAddr# arr (off' +# 2#)))
+   b1   = int2Word# (ord# (indexCharOffAddr# arr (off' +# 1#)))
+   b0   = int2Word# (ord# (indexCharOffAddr# arr off'))
+   off' = off *# 4#
+#else
 #if __GLASGOW_HASKELL__ >= 901
-  GHC.Exts.int32ToInt# -- qualified import because it doesn't exist on older GHC's
+  GHC.Exts.int32ToInt#
 #endif
-#ifdef WORDS_BIGENDIAN
-  (GHC.Exts.word32ToInt32# (GHC.Exts.wordToWord32# (GHC.Exts.byteSwap32# (GHC.Exts.word32ToWord# (GHC.Exts.int32ToWord32#
-#endif
-  (indexInt32OffAddr# arr off)
-#ifdef WORDS_BIGENDIAN
-  )))))
+    (indexInt32OffAddr# arr off)
 #endif
 #else
 alexIndexInt32OffAddr = (Data.Array.!)
@@ -3646,12 +3656,7 @@ data AlexReturn a
 
 -- alexScan :: AlexInput -> StartCode -> AlexReturn a
 alexScan input__ IBOX(sc)
-  = alexScanUser (error "alex rule requiring context was invoked by alexScan; use alexScanUser instead?") input__ IBOX(sc)
-
--- If the generated alexScan/alexScanUser functions are called multiple times
--- in the same file, alexScanUser gets broken out into a separate function and
--- increases memory usage. Make sure GHC inlines this function and optimizes it.
-{-# INLINE alexScanUser #-}
+  = alexScanUser undefined input__ IBOX(sc)
 
 alexScanUser user__ input__ IBOX(sc)
   = case alex_scan_tkn user__ input__ ILIT(0) input__ sc AlexNone of
@@ -3776,7 +3781,7 @@ alexRightContext IBOX(sc) user__ _ _ input__ =
         -- match when checking the right context, just
         -- the first match will do.
 #endif
-{-# LINE 29 "Tokens.x" #-}
+{-# LINE 32 "Tokens.x" #-}
 -- Each action has type :: AlexPosn -> String -> Token 
 -- The token type: 
 data Token = 

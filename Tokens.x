@@ -10,6 +10,9 @@ $digit = 0-9
 $alpha = [a-zA-Z]    
 -- alphabetic characters
 
+--ORDER OF RULES MATTER
+--Alex will try to match the first rule first
+--So if one rule a subset of the other, the subset should come first
 tokens :-
 $white+       ; 
   "--".*        ; 
@@ -19,8 +22,8 @@ $white+       ;
   \=          { \p s -> TokenEq p }
   \+          { \p s -> TokenPlus p}
   \-          { \p s -> TokenMinus p}
-  \*          { \p s -> TokenTimes p}
   \*\*         { \p s -> TokenExp p}
+  \*          { \p s -> TokenTimes p}
   \/          { \p s -> TokenDiv p}
   \(          { \p s -> TokenLParen p}
   \)          { \p s -> TokenRParen p}
