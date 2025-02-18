@@ -81,7 +81,7 @@ happyReduction_1 ((HappyAbsSyn4  happy_var_6) `HappyStk`
         _ `HappyStk`
         (HappyAbsSyn4  happy_var_4) `HappyStk`
         _ `HappyStk`
-        (HappyTerminal (TokenVar _ happy_var_2)) `HappyStk`
+        (HappyTerminal (TokenVar p happy_var_2)) `HappyStk`
         _ `HappyStk`
         happyRest)
          = HappyAbsSyn4
@@ -167,7 +167,7 @@ happyReduction_8 _ _  = notHappyAtAll
 #if __GLASGOW_HASKELL__ >= 710
 #endif
 happyReduce_9 = happySpecReduce_1  0# happyReduction_9
-happyReduction_9 (HappyTerminal (TokenInt _ happy_var_1))
+happyReduction_9 (HappyTerminal (TokenInt p happy_var_1))
          =  HappyAbsSyn4
                  (Int happy_var_1
         )
@@ -176,7 +176,7 @@ happyReduction_9 _  = notHappyAtAll
 #if __GLASGOW_HASKELL__ >= 710
 #endif
 happyReduce_10 = happySpecReduce_1  0# happyReduction_10
-happyReduction_10 (HappyTerminal (TokenVar _ happy_var_1))
+happyReduction_10 (HappyTerminal (TokenVar p happy_var_1))
          =  HappyAbsSyn4
                  (Var happy_var_1
         )
@@ -188,18 +188,18 @@ happyNewToken action sts stk [] =
 happyNewToken action sts stk (tk:tks) =
         let cont i = happyDoAction i tk action sts stk tks in
         case tk of {
-        TokenLet _ -> cont 1#;
-        TokenIn _ -> cont 2#;
-        TokenInt _ happy_dollar_dollar -> cont 3#;
-        TokenVar _ happy_dollar_dollar -> cont 4#;
-        TokenEq _ -> cont 5#;
-        TokenPlus _ -> cont 6#;
-        TokenMinus _ -> cont 7#;
-        TokenTimes _ -> cont 8#;
-        TokenDiv _ -> cont 9#;
-        TokenExp _ -> cont 10#;
-        TokenLParen _ -> cont 11#;
-        TokenRParen _ -> cont 12#;
+        TokenLet p -> cont 1#;
+        TokenIn p -> cont 2#;
+        TokenInt p happy_dollar_dollar -> cont 3#;
+        TokenVar p happy_dollar_dollar -> cont 4#;
+        TokenEq p -> cont 5#;
+        TokenPlus p -> cont 6#;
+        TokenMinus p -> cont 7#;
+        TokenTimes p -> cont 8#;
+        TokenDiv p -> cont 9#;
+        TokenExp p -> cont 10#;
+        TokenLParen p -> cont 11#;
+        TokenRParen p -> cont 12#;
         _ -> happyError' ((tk:tks), [])
         }
 
@@ -236,7 +236,8 @@ happySeq = happyDontSeq
 
 
 parseError :: [Token] -> a
-parseError _ = error "Parse error" 
+parseError xs = error $  "Error with: " ++ show (head xs) ++ " full list of tokens is: " ++  (foldl (++) "\n" $ map (\x -> show x ++ "\n") xs)
+
 data Exp = Let String Exp Exp 
          | Plus Exp Exp 
          | Minus Exp Exp 

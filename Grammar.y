@@ -10,18 +10,18 @@ import Tokens
 %tokentype { Token } 
 %error { parseError }
 %token 
-    let { TokenLet _ } 
-    in  { TokenIn _ } 
-    int { TokenInt _ $$ } 
-    var { TokenVar _ $$ } 
-    '=' { TokenEq _ } 
-    '+' { TokenPlus _ } 
-    '-' { TokenMinus _ } 
-    '*' { TokenTimes _ } 
-    '/' { TokenDiv _ } 
-    '**' { TokenExp _ }
-    '(' { TokenLParen _ } 
-    ')' { TokenRParen _ } 
+    let { TokenLet p } 
+    in  { TokenIn p } 
+    int { TokenInt p $$ } 
+    var { TokenVar p $$ } 
+    '=' { TokenEq p } 
+    '+' { TokenPlus p } 
+    '-' { TokenMinus p } 
+    '*' { TokenTimes p } 
+    '/' { TokenDiv p } 
+    '**' { TokenExp p }
+    '(' { TokenLParen p } 
+    ')' { TokenRParen p } 
 
 --parser declations
 %right in 
@@ -42,8 +42,10 @@ Exp : let var '=' Exp in Exp { Let $2 $4 $6 }
     | var                    { Var $1 } 
     
 { 
+--error message
 parseError :: [Token] -> a
-parseError _ = error "Parse error" 
+parseError xs = error $  "Error with: " ++ show (head xs) ++ " full list of tokens is: " ++  (foldl (++) "\n" $ map (\x -> show x ++ "\n") xs)
+
 data Exp = Let String Exp Exp 
          | Plus Exp Exp 
          | Minus Exp Exp 
