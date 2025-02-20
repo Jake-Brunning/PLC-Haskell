@@ -235,6 +235,7 @@ parseCalc tks = happyRunIdentity happySomeParser where
 happySeq = happyDontSeq
 
 
+--error message
 parseError :: [Token] -> a
 parseError xs = error $  "Error with: " ++ show (head xs) ++ " full list of tokens is: " ++  (foldl (++) "\n" $ map (\x -> show x ++ "\n") xs)
 

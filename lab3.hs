@@ -3,10 +3,12 @@ import System.IO
 import Control.Monad
 import Tokens
 import Grammar
+import MDLGram
+import MDL
 import System.Environment (getArgs)
 
 main :: IO ()
-main = task1
+main = task3
 
 readFileToString :: FilePath -> IO String
 readFileToString path = do
@@ -17,4 +19,12 @@ readFileToString path = do
 task1 = do
         args <- getArgs
         code <- readFileToString (head args)
-        print $ parseCalc $ alexScanTokens code
+        print $ parseCalc $ Tokens.alexScanTokens code
+
+
+task3 = do
+        args <- getArgs
+        code <- readFileToString (head args)
+        let tokens = MDL.alexScanTokens code
+        print tokens
+        print $ parseMDL tokens
